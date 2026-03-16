@@ -1,79 +1,111 @@
 'use client';
-import { DashaPeriod } from '@/lib/jyotish-engine';
+import { DashaPeriod } from '@/lib/jyotish-engine-v2';
 
-interface DashaTimelineProps { dashas: DashaPeriod[]; birthYear: number; }
-
-export default function DashaTimeline({ dashas, birthYear }: DashaTimelineProps) {
-  const currentYear = new Date().getFullYear();
-  const currentAge = currentYear - birthYear;
-  
-  const totalYears = dashas.reduce((s, d) => s + d.years, 0);
+export default function DashaTimeline({ dashas, birthYear }: { dashas: DashaPeriod[]; birthYear: number }) {
+  const currentAge = new Date().getFullYear() - birthYear;
+  const total = dashas.reduce((s,d) => s+d.years, 0);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 text-sm text-white/50 mb-4">
-        <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-        <span>वर्तमान आयु: {currentAge} वर्ष</span>
-      </div>
-      
-      {/* Timeline bar */}
-      <div className="relative h-8 rounded-full overflow-hidden flex">
-        {dashas.map((dasha, i) => (
-          <div
-            key={i}
-            style={{ width: `${(dasha.years / totalYears) * 100}%`, backgroundColor: dasha.color + '99' }}
-            className="relative group"
-            title={`${dasha.planetHi}: ${dasha.startAge}-${dasha.endAge} वर्ष`}
-          >
-            {dasha.startAge <= currentAge && currentAge < dasha.endAge && (
-              <div className="absolute inset-0 border-2 border-white rounded-sm"></div>
-            )}
-          </div>
-        ))}
-        {/* Current age marker */}
-        <div
-          className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg"
-          style={{ left: `${(Math.min(currentAge, totalYears) / totalYears) * 100}%` }}
-        />
+    <div>
+      {/* Progress bar */}
+      <div style={{ marginBottom:28 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+          <span style={{ fontSize:12, color:'rgba(255,255,255,.4)' }}>जन्म</span>
+          <span style={{ fontSize:12, color:'rgba(251,191,36,.7)', fontWeight:600 }}>
+            वर्तमान आयु: {currentAge} वर्ष
+          </span>
+          <span style={{ fontSize:12, color:'rgba(255,255,255,.4)' }}>120 वर्ष</span>
+        </div>
+        {/* Segmented bar */}
+        <div style={{ height:12, borderRadius:999, overflow:'hidden', display:'flex',
+          background:'rgba(255,255,255,.05)', border:'1px solid rgba(255,255,255,.08)' }}>
+          {dashas.map((d,i) => (
+            <div key={i} style={{
+              width:`${(d.years/total)*100}%`,
+              background: d.startAge<=currentAge && currentAge<d.endAge
+                ? d.color : d.color+'55',
+              borderRight: i<dashas.length-1 ? '1px solid rgba(0,0,0,.3)' : 'none',
+              transition:'all .3s',
+              position:'relative',
+            }} title={`${d.planetHi}: ${d.startAge}–${d.endAge}`}>
+              {d.startAge<=currentAge && currentAge<d.endAge && (
+                <div style={{ position:'absolute', inset:0,
+                  animation:'pulse-ring .5s ease infinite', borderRadius:999 }}/>
+              )}
+            </div>
+          ))}
+        </div>
+        {/* Current marker */}
+        <div style={{ position:'relative', height:0 }}>
+          <div style={{
+            position:'absolute', top:-2,
+            left:`${Math.min(currentAge/total*100, 99)}%`,
+            transform:'translateX(-50%)',
+            width:3, height:16, background:'white',
+            borderRadius:2, boxShadow:'0 0 8px rgba(255,255,255,.8)'
+          }}/>
+        </div>
       </div>
 
       {/* Dasha cards */}
-      <div className="space-y-3">
-        {dashas.map((dasha, i) => {
-          const isActive = dasha.startAge <= currentAge && currentAge < dasha.endAge;
-          const isPast = dasha.endAge <= currentAge;
-          const startYear = birthYear + dasha.startAge;
-          const endYear = birthYear + dasha.endAge;
-          
+      <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+        {dashas.map((d,i) => {
+          const isActive = d.startAge <= currentAge && currentAge < d.endAge;
+          const isPast   = d.endAge <= currentAge;
+          const sy = birthYear + d.startAge, ey = birthYear + d.endAge;
+
           return (
-            <div key={i} className={`rounded-xl p-4 border transition-all ${
-              isActive 
-                ? 'border-amber-400/60 bg-amber-400/10 ring-1 ring-amber-400/30' 
-                : isPast 
-                  ? 'border-white/10 bg-white/3 opacity-60'
-                  : 'border-white/15 bg-white/5'
-            }`}>
-              <div className="flex flex-wrap items-start gap-3">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                       style={{ backgroundColor: dasha.color + 'AA' }}>
-                    {dasha.planetHi[0]}
-                  </div>
+            <div key={i} style={{
+              borderRadius:18, padding:'18px 20px',
+              border:`1.5px solid ${isActive ? d.color+'66' : 'rgba(255,255,255,.07)'}`,
+              background: isActive
+                ? `linear-gradient(135deg,${d.color}10,${d.color}06)`
+                : 'rgba(255,255,255,.025)',
+              opacity: isPast ? .55 : 1,
+              transition:'all .25s',
+            }}>
+              <div style={{ display:'flex', alignItems:'flex-start', gap:16 }}>
+                {/* Color dot + planet */}
+                <div style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+                  <div style={{
+                    width:44, height:44, borderRadius:'50%',
+                    background:`radial-gradient(circle at 35% 35%,${d.color},${d.color}88)`,
+                    boxShadow:`0 0 16px ${d.color}44`,
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    fontSize:16, fontWeight:800, color:'rgba(0,0,0,.7)',
+                  }}>{d.planetHi[0]}</div>
+                  {isActive && (
+                    <div style={{ width:6, height:6, borderRadius:'50%',
+                      background: d.color, animation:'bounce-subtle 1s ease-in-out infinite' }}/>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-bold text-white" style={{ color: dasha.color }}>{dasha.planetHi}</span>
-                    <span className="text-white/40 text-sm">{dasha.planet} Mahadasha</span>
+
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:8, marginBottom:4 }}>
+                    <span style={{ fontWeight:700, fontSize:17, color: isActive ? d.color : '#f1f5f9' }}>
+                      {d.planetHi}
+                    </span>
+                    <span style={{ fontSize:12, color:'rgba(255,255,255,.35)' }}>महादशा</span>
                     {isActive && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-400 text-black font-bold">
-                        ▶ वर्तमान
-                      </span>
+                      <span style={{
+                        fontSize:10, fontWeight:700, padding:'2px 10px',
+                        borderRadius:999, background:d.color, color:'#000',
+                        letterSpacing:'.06em', textTransform:'uppercase'
+                      }}>▶ अभी</span>
                     )}
                   </div>
-                  <div className="text-white/50 text-xs mt-1">
-                    {dasha.years} वर्ष | आयु {dasha.startAge}–{dasha.endAge} | ({startYear}–{endYear})
+                  <div style={{ fontSize:12, color:'rgba(255,255,255,.4)', marginBottom:8 }}>
+                    {d.years} वर्ष · आयु {d.startAge}–{d.endAge} · ({sy}–{ey})
                   </div>
-                  <p className="text-white/70 text-sm mt-2">{dasha.description}</p>
+                  <p style={{ fontSize:13, color:'rgba(255,255,255,.65)', lineHeight:1.6 }}>
+                    {d.description}
+                  </p>
+                </div>
+
+                {/* Year badge */}
+                <div style={{ flexShrink:0, textAlign:'right' }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,.5)' }}>{sy}</div>
+                  <div style={{ fontSize:10, color:'rgba(255,255,255,.25)' }}>–{ey}</div>
                 </div>
               </div>
             </div>

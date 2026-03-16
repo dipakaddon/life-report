@@ -1,117 +1,159 @@
 'use client';
-import { ChartData } from '@/lib/jyotish-engine';
+import { ChartData } from '@/lib/jyotish-engine-v2';
+import { useState } from 'react';
 
-interface ChartTableProps { chart: ChartData; }
-
-const PLANET_SYMBOLS: Record<string, string> = {
-  Sun: '☀️', Moon: '🌙', Mars: '♂', Mercury: '☿', Jupiter: '♃',
-  Venus: '♀', Saturn: '♄', Rahu: '☊', Ketu: '☋'
+const SYM: Record<string,string> = {
+  Sun:'☀️', Moon:'🌙', Mars:'♂️', Mercury:'☿', Jupiter:'♃',
+  Venus:'♀️', Saturn:'♄', Rahu:'☊', Ketu:'☋'
+};
+const DIGNITY_CLASS: Record<string,string> = {
+  Exalted:'dignity-exalted', Debilitated:'dignity-debilitated',
+  'Own Sign':'dignity-own', Neutral:'dignity-neutral'
+};
+const DIGNITY_HI: Record<string,string> = {
+  Exalted:'उच्च', Debilitated:'नीच', 'Own Sign':'स्वराशि', Neutral:'सम'
 };
 
-const DIGNITY_COLORS: Record<string, string> = {
-  Exalted: 'text-green-400 font-bold',
-  Debilitated: 'text-red-400',
-  'Own Sign': 'text-blue-400 font-semibold',
-  Neutral: 'text-white/70'
-};
-
-const DIGNITY_HI: Record<string, string> = {
-  Exalted: 'उच्च', Debilitated: 'नीच', 'Own Sign': 'स्वराशि', Neutral: '-'
-};
-
-export default function ChartTable({ chart }: ChartTableProps) {
+export default function ChartTable({ chart }: { chart: ChartData }) {
+  const [view, setView] = useState<'table'|'wheel'>('table');
   const planets = Object.entries(chart.planets);
-  
-  // Group planets by house for visual display
-  const byHouse: Record<number, string[]> = {};
-  planets.forEach(([name, data]) => {
-    if (!byHouse[data.house]) byHouse[data.house] = [];
-    byHouse[data.house].push(name);
-  });
+
+  // House grid
+  const byHouse: Record<number,string[]> = {};
+  planets.forEach(([n,d]) => { if(!byHouse[d.house]) byHouse[d.house]=[]; byHouse[d.house].push(n); });
+
+  const houseNames = ['','प्रथम','द्वितीय','तृतीय','चतुर्थ','पंचम','षष्ठ','सप्तम','अष्टम','नवम','दशम','एकादश','द्वादश'];
 
   return (
-    <div className="space-y-6">
-      {/* Lagna Card */}
-      <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/30 rounded-2xl p-5">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-amber-400">{chart.lagna.sign_hi}</div>
-            <div className="text-sm text-white/60">{chart.lagna.sign_en}</div>
+    <div>
+      {/* Lagna banner */}
+      <div style={{
+        display:'flex', flexWrap:'wrap', gap:16, alignItems:'center',
+        padding:'20px 24px', borderRadius:18, marginBottom:24,
+        background:'linear-gradient(135deg,rgba(251,191,36,.1),rgba(168,85,247,.08))',
+        border:'1px solid rgba(251,191,36,.2)'
+      }}>
+        <div>
+          <div style={{ fontSize:12, color:'rgba(255,255,255,.4)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4 }}>लग्न / Ascendant</div>
+          <div style={{ display:'flex', alignItems:'baseline', gap:10 }}>
+            <span style={{ fontSize:28, fontWeight:800, color:'#fcd34d' }}>{chart.lagna.sign_hi}</span>
+            <span style={{ fontSize:14, color:'rgba(255,255,255,.5)' }}>{chart.lagna.sign_en}</span>
+            <span style={{ fontSize:13, color:'rgba(255,255,255,.35)' }}>{chart.lagna.degree}°</span>
           </div>
-          <div className="flex-1 min-w-48">
-            <div className="text-amber-200 font-semibold text-lg">लग्न / Ascendant</div>
-            <div className="text-white/70 text-sm">
-              {chart.lagna.degree.toFixed(1)}° | नक्षत्र: {chart.lagna.nakshatra.hi} ({chart.lagna.nakshatra.en}) पद {chart.lagna.nakshatra.pada}
-            </div>
-            <div className="text-white/60 text-sm">लग्नेश: {chart.lagna.lord} | Ayanamsa: {chart.ayanamsa.toFixed(2)}°</div>
-          </div>
+        </div>
+        <div style={{ borderLeft:'1px solid rgba(255,255,255,.1)', paddingLeft:16 }}>
+          <div style={{ fontSize:11, color:'rgba(255,255,255,.35)', marginBottom:2 }}>नक्षत्र</div>
+          <div style={{ fontSize:14, color:'rgba(255,255,255,.75)' }}>{chart.lagna.nakshatra.hi} पद {chart.lagna.nakshatra.pada}</div>
+        </div>
+        <div style={{ borderLeft:'1px solid rgba(255,255,255,.1)', paddingLeft:16 }}>
+          <div style={{ fontSize:11, color:'rgba(255,255,255,.35)', marginBottom:2 }}>लग्नेश</div>
+          <div style={{ fontSize:14, color:'rgba(255,255,255,.75)' }}>{chart.lagna.lord}</div>
+        </div>
+        <div style={{ borderLeft:'1px solid rgba(255,255,255,.1)', paddingLeft:16, marginLeft:'auto' }}>
+          <div style={{ fontSize:11, color:'rgba(255,255,255,.35)', marginBottom:2 }}>Ayanamsa</div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,.5)' }}>Lahiri {chart.ayanamsa}°</div>
         </div>
       </div>
 
-      {/* Planet Table */}
-      <div className="overflow-x-auto rounded-2xl border border-white/10">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-white/10 text-amber-200">
-              <th className="px-4 py-3 text-left">ग्रह</th>
-              <th className="px-4 py-3 text-left">राशि</th>
-              <th className="px-4 py-3 text-center">भाव</th>
-              <th className="px-4 py-3 text-left hidden sm:table-cell">नक्षत्र</th>
-              <th className="px-4 py-3 text-center hidden md:table-cell">पद</th>
-              <th className="px-4 py-3 text-center">स्थिति</th>
-            </tr>
-          </thead>
-          <tbody>
-            {planets.map(([name, data], i) => (
-              <tr key={name} className={`border-t border-white/5 ${i % 2 === 0 ? 'bg-white/3' : ''} hover:bg-white/8 transition-colors`}>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{PLANET_SYMBOLS[name]}</span>
-                    <div>
-                      <div className="text-white font-medium">{data.name_hi}</div>
-                      <div className="text-white/40 text-xs">{name}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="text-white">{data.sign_hi}</div>
-                  <div className="text-white/40 text-xs">{data.sign_en} {data.degree.toFixed(1)}°</div>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/10 text-amber-300 font-bold">{data.house}</span>
-                </td>
-                <td className="px-4 py-3 hidden sm:table-cell">
-                  <div className="text-white/80">{data.nakshatra.hi}</div>
-                  <div className="text-white/40 text-xs">{data.nakshatra.en}</div>
-                </td>
-                <td className="px-4 py-3 text-center hidden md:table-cell text-white/60">{data.nakshatra.pada}</td>
-                <td className="px-4 py-3 text-center">
-                  <span className={`text-xs px-2 py-1 rounded-full bg-white/10 ${DIGNITY_COLORS[data.dignity]}`}>
-                    {DIGNITY_HI[data.dignity]}
-                  </span>
-                </td>
+      {/* View toggle */}
+      <div style={{ display:'flex', gap:8, marginBottom:20 }}>
+        {[['table','📊 तालिका'],['wheel','🔵 भाव चक्र']].map(([v,l]) => (
+          <button key={v} onClick={() => setView(v as 'table'|'wheel')} style={{
+            padding:'8px 18px', borderRadius:999, border:'1.5px solid',
+            borderColor: view===v ? 'rgba(251,191,36,.5)' : 'rgba(255,255,255,.1)',
+            background: view===v ? 'rgba(251,191,36,.1)' : 'transparent',
+            color: view===v ? '#fcd34d' : 'rgba(255,255,255,.45)',
+            fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit', transition:'all .2s'
+          }}>{l}</button>
+        ))}
+      </div>
+
+      {view === 'table' ? (
+        /* ── Planet table ── */
+        <div style={{ overflowX:'auto', borderRadius:16, border:'1px solid rgba(255,255,255,.07)' }}>
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:14 }}>
+            <thead>
+              <tr style={{ background:'rgba(255,255,255,.04)' }}>
+                {['ग्रह','राशि','भाव','नक्षत्र / पद','स्थिति'].map(h => (
+                  <th key={h} style={{ padding:'12px 16px', textAlign:'left', fontSize:11,
+                    fontWeight:700, color:'rgba(251,191,36,.8)', textTransform:'uppercase',
+                    letterSpacing:'.07em', whiteSpace:'nowrap', borderBottom:'1px solid rgba(255,255,255,.07)' }}>
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* House Map */}
-      <div>
-        <h3 className="text-amber-200 font-semibold mb-3 text-sm uppercase tracking-wider">भाव-चक्र / House Map</h3>
-        <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-          {Array.from({ length: 12 }, (_, i) => i + 1).map(house => (
-            <div key={house} className={`rounded-xl p-3 text-center border ${byHouse[house]?.length ? 'bg-amber-500/15 border-amber-400/30' : 'bg-white/5 border-white/10'}`}>
-              <div className="text-white/40 text-xs mb-1">भाव {house}</div>
-              <div className="flex flex-wrap justify-center gap-1">
-                {byHouse[house]?.map(p => (
-                  <span key={p} className="text-base" title={p}>{PLANET_SYMBOLS[p]}</span>
-                )) || <span className="text-white/20 text-xs">—</span>}
-              </div>
-            </div>
-          ))}
+            </thead>
+            <tbody>
+              {planets.map(([name,d],i) => (
+                <tr key={name} style={{
+                  borderTop:'1px solid rgba(255,255,255,.04)',
+                  background: i%2===0 ? 'transparent' : 'rgba(255,255,255,.015)',
+                  transition:'background .15s'
+                }}
+                  onMouseEnter={e => (e.currentTarget.style.background='rgba(251,191,36,.04)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = i%2===0 ? 'transparent' : 'rgba(255,255,255,.015)')}
+                >
+                  <td style={{ padding:'14px 16px', whiteSpace:'nowrap' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                      <span style={{ fontSize:20, lineHeight:1 }}>{SYM[name]}</span>
+                      <div>
+                        <div style={{ fontWeight:600, color:'#f1f5f9' }}>{d.name_hi}</div>
+                        <div style={{ fontSize:11, color:'rgba(255,255,255,.35)' }}>{name}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding:'14px 16px' }}>
+                    <div style={{ fontWeight:500 }}>{d.sign_hi}</div>
+                    <div style={{ fontSize:11, color:'rgba(255,255,255,.35)' }}>{d.sign_en} {d.degree}°</div>
+                  </td>
+                  <td style={{ padding:'14px 16px', textAlign:'center' }}>
+                    <div style={{ width:36, height:36, borderRadius:'50%',
+                      background:'rgba(251,191,36,.1)', border:'1.5px solid rgba(251,191,36,.25)',
+                      display:'inline-flex', alignItems:'center', justifyContent:'center',
+                      fontSize:15, fontWeight:700, color:'#fcd34d' }}>
+                      {d.house}
+                    </div>
+                  </td>
+                  <td style={{ padding:'14px 16px' }}>
+                    <div style={{ fontSize:13 }}>{d.nakshatra.hi}</div>
+                    <div style={{ fontSize:11, color:'rgba(255,255,255,.35)' }}>{d.nakshatra.en} · पद {d.nakshatra.pada}</div>
+                  </td>
+                  <td style={{ padding:'14px 16px' }}>
+                    <span className={`dignity-badge ${DIGNITY_CLASS[d.dignity]}`}>
+                      {DIGNITY_HI[d.dignity]}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </div>
+      ) : (
+        /* ── House wheel ── */
+        <div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10 }}>
+            {Array.from({length:12},(_,i)=>i+1).map(h => (
+              <div key={h} style={{
+                borderRadius:16, padding:'14px 12px', textAlign:'center',
+                background: byHouse[h]?.length ? 'rgba(251,191,36,.06)' : 'rgba(255,255,255,.025)',
+                border:`1.5px solid ${byHouse[h]?.length ? 'rgba(251,191,36,.2)' : 'rgba(255,255,255,.06)'}`,
+                transition:'all .2s'
+              }}>
+                <div style={{ fontSize:10, color:'rgba(255,255,255,.3)', marginBottom:6,
+                  textTransform:'uppercase', letterSpacing:'.08em' }}>
+                  {houseNames[h]}
+                </div>
+                <div style={{ fontSize:12, fontWeight:600, color:'rgba(251,191,36,.7)', marginBottom:8 }}>भाव {h}</div>
+                <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:4, minHeight:28 }}>
+                  {byHouse[h]?.map(p => (
+                    <span key={p} title={p} style={{ fontSize:18, lineHeight:1 }}>{SYM[p]}</span>
+                  )) || <span style={{ color:'rgba(255,255,255,.15)', fontSize:12 }}>—</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
