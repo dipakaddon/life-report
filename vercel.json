@@ -1,11 +1,5 @@
 {
-  "functions": {
-    "api/chart-py.py": {
-      "runtime": "python3.9",
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
-    { "source": "/api/chart-py", "destination": "/api/chart-py.py" }
-  ]
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install"
 }
