@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/chart-py.py": {
+      "runtime": "vercel-python@3.0.7",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    { "source": "/api/chart-py", "destination": "/api/chart-py.py" }
+  ]
+}

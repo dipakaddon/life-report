@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── Space background ─── */
+body {
+  background: #050510;
+  color: white;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ─── Star animations ─── */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+@keyframes twinkle-slow {
+  0%, 100% { opacity: 0.05; }
+  50% { opacity: 0.7; }
+}
+@keyframes drift {
+  0% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(30px) translateY(-20px); }
+  50% { transform: translateX(60px) translateY(10px); }
+  75% { transform: translateX(20px) translateY(30px); }
+  100% { transform: translateX(0) translateY(0); }
+}
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(var(--r)) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(var(--r)) rotate(-360deg); }
+}
+@keyframes orbit-reverse {
+  from { transform: rotate(0deg) translateX(var(--r)) rotate(0deg); }
+  to { transform: rotate(-360deg) translateX(var(--r)) rotate(360deg); }
+}
+@keyframes planet-glow {
+  0%, 100% { box-shadow: 0 0 8px 2px var(--color); }
+  50% { box-shadow: 0 0 20px 6px var(--color); }
+}
+@keyframes nebula-pulse {
+  0%, 100% { opacity: 0.03; transform: scale(1); }
+  50% { opacity: 0.08; transform: scale(1.05); }
+}
+@keyframes shooting-star {
+  0% { transform: translateX(-100px) translateY(0) rotate(-30deg); opacity: 1; }
+  100% { transform: translateX(600px) translateY(200px) rotate(-30deg); opacity: 0; }
+}
+@keyframes float-logo {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-12px) rotate(2deg); }
+  66% { transform: translateY(-6px) rotate(-1deg); }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes spin-slow-rev {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes glow-pulse {
+  0%, 100% { text-shadow: 0 0 20px rgba(253,211,77,0.4); }
+  50% { text-shadow: 0 0 40px rgba(253,211,77,0.9), 0 0 80px rgba(253,150,77,0.4); }
+}
+@keyframes border-glow {
+  0%, 100% { border-color: rgba(253,211,77,0.2); }
+  50% { border-color: rgba(253,211,77,0.5); }
+}
+@keyframes comet {
+  0% { transform: translateX(-200%) translateY(-200%) rotate(-45deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateX(300%) translateY(300%) rotate(-45deg); opacity: 0; }
+}
+
+/* ─── Component styles ─── */
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+}
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(253, 211, 77, 0.2);
+  transform: translateY(-2px);
+}
+.text-gradient {
+  background: linear-gradient(135deg, #FCD34D 0%, #FBBF24 30%, #F97316 70%, #FCA5A5 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 4s ease infinite;
+}
+.title-glow { animation: glow-pulse 3s ease-in-out infinite; }
+.border-animate { animation: border-glow 2s ease-in-out infinite; }
+.logo-float { animation: float-logo 6s ease-in-out infinite; }
+.fade-up { animation: fade-up 0.6s ease forwards; }
+
+.planet-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  animation: spin-slow linear infinite;
+}
+.planet-ring-rev {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.08);
+  animation: spin-slow-rev linear infinite;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+::-webkit-scrollbar-thumb { background: rgba(253,211,77,0.3); border-radius: 4px; }
+
+/* print */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .glass, .glass-card { background: white !important; border: 1px solid #ddd !important; }
+}
