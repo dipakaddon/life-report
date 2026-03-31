@@ -3,7 +3,18 @@ import { generateAllPredictions, detectYogas, calculateDashas, ChartData } from 
 
 export async function POST(req: NextRequest) {
   try {
-    const { chart, birthYear } = await req.json() as { chart: ChartData; birthYear: number };
+    const body = await req.json();
+    // Basic validation so errors are visible in Vercel logs instead of generic 400s
+    if (!body || typeof body !== 'object') {
+      console.error('Report error: empty or invalid body');
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+    const { chart, birthYear } = body as { chart?: ChartData; birthYear?: number };
+    if (!chart || typeof birthYear !== 'number') {
+      console.error('Report error: missing chart or birthYear', { hasChart: !!chart, birthYear });
+      return NextResponse.json({ error: 'Missing required fields: chart, birthYear' }, { status: 400 });
+    }
+
     const predictions = generateAllPredictions(chart);
     const yogas = detectYogas(chart);
     const dashas = calculateDashas(chart, birthYear);
