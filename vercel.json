@@ -1,5 +1,15 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "rewrites": [
+    {
+      "source": "/api/chart",
+      "destination": "/api/chart"
+    },
+    {
+      "source": "/api/report",
+      "destination": "/api/report"
+    }
+  ]
 }
