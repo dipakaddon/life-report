@@ -1,9 +1,12 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAllPredictions, detectYogas, calculateDashas, ChartData } from '@/lib/jyotish-engine-v2';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const text = await req.text();
+    const body = JSON.parse(text);
     // Basic validation so errors are visible in Vercel logs instead of generic 400s
     if (!body || typeof body !== 'object') {
       console.error('Report error: empty or invalid body');
