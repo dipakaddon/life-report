@@ -69,12 +69,11 @@ export default function PDFDownload({ name, birthDate, birthTime, birthPlace, la
     <div className="flex gap-3 flex-wrap no-print">
       <button
         onClick={handlePrint}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-full text-white/85 text-sm font-semibold transition-all duration-300 border border-white/20 hover:border-yellow-400/50 hover:text-white hover:-translate-y-0.5"
+        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 border border-white/15 hover:border-white/30 text-white/80 hover:text-white hover:-translate-y-0.5 active:translate-y-0"
         style={{
-          background: 'rgba(255,255,255,0.07)',
-          backdropFilter: 'blur(16px) saturate(1.4)',
-          WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12)',
+          background: 'rgba(255,255,255,0.08)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
         }}
       >
         <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,12 +84,11 @@ export default function PDFDownload({ name, birthDate, birthTime, birthPlace, la
 
       <button
         onClick={handleDownloadTxt}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-full text-amber-300 text-sm font-semibold transition-all duration-300 border border-amber-400/30 hover:border-amber-400/60 hover:text-amber-200 hover:-translate-y-0.5"
+        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 border border-amber-400/20 hover:border-amber-400/40 text-amber-300/90 hover:text-amber-200 hover:-translate-y-0.5 active:translate-y-0"
         style={{
-          background: 'rgba(251,191,36,0.1)',
-          backdropFilter: 'blur(16px) saturate(1.4)',
-          WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(251,191,36,0.15)',
+          background: 'rgba(251,191,36,0.08)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
         }}
       >
         <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
