@@ -69,18 +69,31 @@ export default function PDFDownload({ name, birthDate, birthTime, birthPlace, la
     <div className="flex gap-3 flex-wrap no-print">
       <button
         onClick={handlePrint}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-all border border-white/20"
+        className="flex items-center gap-2 px-5 py-2.5 rounded-full text-white/85 text-sm font-semibold transition-all duration-300 border border-white/20 hover:border-yellow-400/50 hover:text-white hover:-translate-y-0.5"
+        style={{
+          background: 'rgba(255,255,255,0.07)',
+          backdropFilter: 'blur(16px) saturate(1.4)',
+          WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12)',
+        }}
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
         </svg>
         Print / PDF
       </button>
+
       <button
         onClick={handleDownloadTxt}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-sm font-medium transition-all border border-amber-500/30"
+        className="flex items-center gap-2 px-5 py-2.5 rounded-full text-amber-300 text-sm font-semibold transition-all duration-300 border border-amber-400/30 hover:border-amber-400/60 hover:text-amber-200 hover:-translate-y-0.5"
+        style={{
+          background: 'rgba(251,191,36,0.1)',
+          backdropFilter: 'blur(16px) saturate(1.4)',
+          WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(251,191,36,0.15)',
+        }}
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
         डाउनलोड (.txt)
