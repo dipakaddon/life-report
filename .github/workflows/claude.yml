@@ -32,7 +32,7 @@ jobs:
 
       - name: Run Claude Code
         id: claude
-        uses: anthropics/claude-code-action@v1
+        uses: nvidia/nemotron-3-nano-30b-a3b:free
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
