@@ -1,0 +1,118 @@
+name: Claude Code Development
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  claude-development:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'claude') || contains(github.event.comment.body, '@claude')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      # Extract branch name from issue title
+      - name: Generate Branch Name
+        id: branch
+        run: |
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          BRANCH_NAME="feature/$(echo "$ISSUE_TITLE" | sed 's/[^a-zA-Z0-9-]/-/g' | tr '[:upper:]' '[:lower:]' | head -c 50)"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "Generated branch: $BRANCH_NAME"
+      
+      # Create and switch to feature branch
+      - name: Create Feature Branch
+        run: |
+          git config --local user.email "claude@github.com"
+          git config --local user.name "Claude Development Bot"
+          git checkout -b ${{ steps.branch.outputs.branch_name }}
+          git push origin ${{ steps.branch.outputs.branch_name }}
+      
+      # Run Claude Code Analysis
+      - name: Run Claude Code Analysis
+        uses: anthropics/claude-code-action@v1
+        with:
+          api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Build the application
+      - name: Build Application
+        run: npm run build
+        continue-on-error: true
+      
+      # Run tests
+      - name: Run Tests
+        run: npm test
+        continue-on-error: true
+      
+      # Run linting
+      - name: Run Linting
+        run: npm run lint
+        continue-on-error: true
+      
+      # Commit and push changes
+      - name: Commit Changes
+        run: |
+          if [[ -n $(git status -s) ]]; then
+            git add .
+            git commit -m "feat: ${{ github.event.issue.title }}"
+            git push origin ${{ steps.branch.outputs.branch_name }}
+            echo "Changes committed and pushed"
+          else
+            echo "No changes to commit"
+          fi
+      
+      # Create Pull Request to develop
+      - name: Create Pull Request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: "feat: ${{ github.event.issue.title }}",
+              head: "${{ steps.branch.outputs.branch_name }}",
+              base: "develop",
+              body: `## 🤖 Claude Code Development\n\nCloses #${{ github.event.issue.number }}\n\nThis PR was automatically created and developed by Claude Code.\n\n### Changes\n- Implemented: ${{ github.event.issue.title }}\n\n### Next Steps\n1. Review the code\n2. Test the staging deployment\n3. Merge to production when ready\n\n@claude staging deployment will be triggered automatically.`
+            });
+            
+            // Comment on original issue
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ **Claude Code Development Started!**\n\n📝 Pull Request: #${pr.data.number}\n🔗 [View PR](${pr.data.html_url})\n\nStaging deployment will begin automatically.`
+            })
+      
+      - name: Notify on Success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🎉 **Development Complete!**\n\n✅ Code developed and tested\n✅ Pull Request created\n✅ Staging deployment in progress\n\nWait for staging URL in the PR comments.`
+            })

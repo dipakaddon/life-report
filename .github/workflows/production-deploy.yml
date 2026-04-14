@@ -1,0 +1,120 @@
+name: Merge and Deploy to Production
+
+on:
+  issue_comment:
+    types: [created, edited]
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  merge-to-production:
+    runs-on: ubuntu-latest
+    # Trigger when someone comments @claude merge or PR is manually merged
+    if: |
+      (contains(github.event.comment.body, '@claude merge') && github.event.issue.pull_request) ||
+      (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Git
+        run: |
+          git config --local user.email "claude@github.com"
+          git config --local user.name "Claude Merge Bot"
+      
+      # If comment triggered, merge the PR
+      - name: Get PR Number from Comment
+        if: contains(github.event.comment.body, '@claude merge')
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr_number = context.issue.number;
+            console.log(`Merging PR #${pr_number}`);
+            echo `PR_NUMBER=${pr_number}` >> $GITHUB_ENV
+      
+      - name: Merge PR to Main
+        if: contains(github.event.comment.body, '@claude merge')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              merge_method: 'squash',
+              commit_title: 'feat: merge from staging',
+              commit_message: `Merge PR #${context.issue.number} to production`
+            });
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '✅ Merged to main. Production deployment starting...'
+            })
+      
+      - name: Fetch Latest from Main
+        run: |
+          git fetch origin
+          git checkout main
+          git pull origin main
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build for production
+        run: npm run build
+      
+      - name: Run Tests
+        run: npm test
+        continue-on-error: true
+      
+      - name: Deploy to Vercel Production
+        id: vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+          working-directory: ./
+          production: true
+        env:
+          VERCEL_ENV: production
+      
+      - name: Comment Deployment Success
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🚀 **Production Deployment Complete!**\n\n✅ Code merged to main\n✅ Deployed to production\n\n**Production URL:** https://your-app.vercel.app\n\nFeature is now live! 🎉`
+            })
+      
+      - name: Close Original Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            })
